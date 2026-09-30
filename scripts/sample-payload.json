@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "title": "Your order is on the way",
+  "body": "Order #42 will arrive in 10 minutes.",
+  "channelId": "orders",
+  "channelName": "Orders",
+  "importance": "HIGH",
+  "deepLink": "myapp://orders/42",
+  "data": { "type": "order_update", "orderId": "42" }
+}

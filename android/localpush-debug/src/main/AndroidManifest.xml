@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 13+: the plugin can grant it with `pm grant` ("Grant POST_NOTIFICATIONS" button). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <application>
+        <!--
+            exported="true" is required so `adb shell am broadcast -n ...` can reach the receiver.
+            Protection comes from android.permission.DUMP: the `shell` user (adb) holds it, but no
+            third-party app can obtain it (signature|privileged|development). This is the same pattern
+            used by androidx.work.impl.diagnostics.DiagnosticsReceiver.
+            A custom permission with protectionLevel="signature" does NOT work: adb is not signed with
+            your key, so the broadcast would be rejected.
+        -->
+        <receiver
+            android:name=".LocalPushReceiver"
+            android:exported="true"
+            android:permission="android.permission.DUMP">
+            <intent-filter>
+                <action android:name="com.localpush.debug.RECEIVE_LOCAL_PUSH" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

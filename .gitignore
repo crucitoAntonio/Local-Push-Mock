@@ -1,0 +1,17 @@
+# Gradle / IDE
+.gradle/
+build/
+.kotlin/
+.intellijPlatform/
+.idea/
+*.iml
+local.properties
+
+# Sistema
+.DS_Store
+
+# Credenciales de firma del plugin: NUNCA al repositorio
+*.pem
+*.crt
+*.key
+.env

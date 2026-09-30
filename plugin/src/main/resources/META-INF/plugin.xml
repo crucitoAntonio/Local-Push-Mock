@@ -1,0 +1,43 @@
+<idea-plugin>
+    <!-- id, name, version and vendor are injected from gradle.properties (patchPluginXml task). -->
+    <id>localpush</id>
+    <name>Local Push Mock</name>
+    <vendor>Local Push</vendor>
+
+    <description><![CDATA[
+<p>Trigger <b>local Android notifications</b> on a device or emulator straight from the IDE —
+no backend, no web console and no Firebase Cloud Messaging credentials.</p>
+
+<ul>
+  <li>Compose title, body, channel, importance, deep link and <code>data</code> payload (JSON or key=value).</li>
+  <li>Detects connected devices and apps that include the debug companion library.</li>
+  <li>Mimics a real FCM notification: default icon, color and channel from your Firebase meta-data,
+      and the <code>data</code> payload delivered as Intent extras on tap.</li>
+  <li>Optional hook to render the notification with your own production code.</li>
+  <li>Grants <code>POST_NOTIFICATIONS</code> on Android 13+ with one click.</li>
+</ul>
+
+<p><b>How it works:</b> the plugin sends an explicit broadcast through <code>adb</code> to a receiver that
+exists only in your <i>debug</i> build (<code>debugImplementation</code>) and is protected by the
+<code>android.permission.DUMP</code> permission, so other apps cannot trigger it and nothing ships to production.</p>
+
+<p><b>Setup:</b> add the debug companion library to your app, install the debug variant and open the
+<b>Local Push</b> tool window.</p>
+
+    ]]></description>
+
+    <change-notes><![CDATA[
+<ul>
+  <li>1.0.0 — First release.</li>
+</ul>
+    ]]></change-notes>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="Local Push"
+                    anchor="right"
+                    icon="/icons/localPush.svg"
+                    factoryClass="com.localpush.plugin.LocalPushToolWindowFactory"/>
+    </extensions>
+</idea-plugin>
