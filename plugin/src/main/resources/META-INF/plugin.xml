@@ -5,27 +5,35 @@
     <vendor>Local Push</vendor>
 
     <description><![CDATA[
-<p>Trigger <b>local Android notifications</b> on a device or emulator straight from the IDE —
-no backend, no web console and no Firebase Cloud Messaging credentials.</p>
+<p><b>Test Android push notifications from Android Studio — no backend, no Firebase credentials.</b></p>
 
+<p>Local Push Mock lets you fire a real Android notification on any device or emulator straight from the IDE.
+Fill in a form, click <b>Send notification</b>, and it shows up as if your production push had just arrived.</p>
+
+<p><b>Before you start, read the
+<a href="https://gitlab.com/Crucito/local-push-mock/-/blob/main/docs/USER_GUIDE.md">User Guide on GitLab</a>:</b>
+the plugin needs a small debug-only library added to your app.</p>
+
+<h3>Use it to</h3>
 <ul>
-  <li>Compose title, body, channel, importance, deep link and <code>data</code> payload (JSON or key=value).</li>
-  <li>Detects connected devices and apps that include the debug companion library.</li>
-  <li>Mimics a real FCM notification: default icon, color and channel from your Firebase meta-data,
-      and the <code>data</code> payload delivered as Intent extras on tap.</li>
-  <li>Optional hook to render the notification with your own production code.</li>
-  <li>Grants <code>POST_NOTIFICATIONS</code> on Android 13+ with one click.</li>
+  <li>Check how your notifications look: title, body, channel, importance and icon.</li>
+  <li>Test deep links and the <code>data</code> payload your app receives when the notification is tapped.</li>
+  <li>Reproduce push scenarios without waiting for the backend or touching the Firebase console.</li>
+  <li>Run your own production notification code through an optional hook.</li>
 </ul>
 
-<p><b>How it works:</b> the plugin sends an explicit broadcast through <code>adb</code> to a receiver that
-exists only in your <i>debug</i> build (<code>debugImplementation</code>) and is protected by the
-<code>android.permission.DUMP</code> permission, so other apps cannot trigger it and nothing ships to production.</p>
+<h3>How it works</h3>
+<p>The plugin sends the notification to your app over <code>adb</code>. A tiny receiver that exists
+<b>only in your debug build</b> shows it using the native Android APIs, mimicking a real FCM push.
+Nothing ships to production, and other apps cannot trigger it.</p>
 
-<p><b>Setup:</b> add the debug companion library to your app, install the debug variant and open the
-<b>Local Push</b> tool window.</p>
-
-<p><b>Documentation:</b> for detailed, step-by-step setup and usage instructions, see the
-<a href="https://gitlab.com/Crucito/local-push-mock/-/blob/main/docs/USER_GUIDE.md">User Guide on GitLab</a>.</p>
+<h3>Requirements</h3>
+<ul>
+  <li>Android Studio Ladybug (2024.2) or later</li>
+  <li>An Android device or emulator (Android 5.0+)</li>
+  <li>The <code>localpush-debug</code> library in your app's debug build —
+      <a href="https://gitlab.com/Crucito/local-push-mock/-/blob/main/docs/USER_GUIDE.md">setup steps on GitLab</a></li>
+</ul>
 
     ]]></description>
 
