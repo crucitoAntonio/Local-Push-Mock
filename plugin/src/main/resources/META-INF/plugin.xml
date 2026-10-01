@@ -24,6 +24,9 @@ exists only in your <i>debug</i> build (<code>debugImplementation</code>) and is
 <p><b>Setup:</b> add the debug companion library to your app, install the debug variant and open the
 <b>Local Push</b> tool window.</p>
 
+<p><b>Documentation:</b> for detailed, step-by-step setup and usage instructions, see the
+<a href="https://gitlab.com/Crucito/local-push-mock/-/blob/main/docs/USER_GUIDE.md">User Guide on GitLab</a>.</p>
+
     ]]></description>
 
     <change-notes><![CDATA[
