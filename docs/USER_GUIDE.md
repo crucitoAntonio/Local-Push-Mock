@@ -62,7 +62,13 @@ Android Studio (form) ──adb──▶ Phone/Emulator ──▶ Debug app ─�
 
 ### 3.1 Get the project
 
-Clone or copy the `local-push-mock` folder to your computer:
+Clone the repository (recommended):
+
+```bash
+git clone https://gitlab.com/Crucito/local-push-mock.git
+```
+
+You can also download it as a `.zip` from GitLab or GitHub, but on macOS a downloaded copy triggers a Gatekeeper warning on the installer (see [3.2](#32-run-the-installer)). A `git clone` does not.
 
 ```
 local-push-mock/
@@ -78,9 +84,20 @@ local-push-mock/
 
 | OS | What to do |
 |---|---|
-| **macOS** | Double-click **`install-plugin.command`**. If macOS says it can't be opened because it is from an unidentified developer: right-click › **Open** › **Open**. |
+| **macOS** | Double-click **`install-plugin.command`**. If macOS blocks it, see the note below. |
 | **Windows** | Double-click **`install-plugin.cmd`**. If SmartScreen warns you: **More info › Run anyway**. |
 | **Linux** | In a terminal: `bash scripts/install-plugin.sh` |
+
+> [!NOTE]
+> **macOS: "Apple could not verify that install-plugin.command is free of malware".**
+> This is Gatekeeper: macOS blocks unsigned scripts that were downloaded from the internet (e.g. the `.zip` from GitLab/GitHub). The script is safe; you can read it in `scripts/install-plugin.sh`. Pick one option:
+> - **Allow it once:** click **Done**, open **System Settings › Privacy & Security**, scroll to **Security** and click **Open Anyway** next to `install-plugin.command`, then confirm with your password or Touch ID. (On macOS 15 and later, right-click › Open no longer bypasses this.)
+> - **Remove the download flag** from the whole folder, then double-click again:
+>   ```bash
+>   xattr -dr com.apple.quarantine /path/to/local-push-mock
+>   ```
+> - **Run it from Terminal** (not subject to Gatekeeper): `bash scripts/install-plugin.sh` inside the project folder.
+> - **Use `git clone`** instead of downloading the `.zip`: cloned files are not flagged.
 
 The installer does **all the work** for you:
 
@@ -504,6 +521,7 @@ Broadcast completed: result=1, data="id=… channel=…"
 | Installer: `Android Studio not found` | It's in a non-standard location | Run the installer with `--dest "<plugins folder>"` (see [3.5](#35-installer-options)). |
 | Installer: `No Java 21+ found` | Android Studio older than Ladybug | Update Android Studio, or set `JAVA_HOME` to a JDK 21. |
 | Installer: build fails | No internet on the first run, or a corporate proxy | Connect and retry, or install a prebuilt `.zip` with `--zip`. |
+| macOS: "Apple could not verify that install-plugin.command is free of malware" | Gatekeeper blocks unsigned scripts downloaded from the internet | *System Settings › Privacy & Security › Open Anyway*, or `xattr -dr com.apple.quarantine <project folder>`, or run `bash scripts/install-plugin.sh` (see [3.2](#32-run-the-installer)). |
 | `adb not found` | The plugin can't locate the SDK | *Advanced › adb / SDK path* → enter the SDK folder. You can find it in *Settings › Android SDK › Android SDK Location*. |
 | `No devices` | adb sees none | Start the emulator or connect the phone with USB debugging and click *Refresh*. |
 | `… is 'unauthorized'` | The phone doesn't trust your computer | Unlock it and accept *Allow USB debugging?*. |
