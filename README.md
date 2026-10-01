@@ -9,7 +9,8 @@ local-push-mock/
 ├── scripts/localpush.sh         Same protocol from a terminal / CI
 ├── scripts/install-plugin.*     Plugin installer (sh / ps1)
 ├── install-plugin.command       Double-click installer (macOS)
-└── install-plugin.cmd           Double-click installer (Windows)
+├── install-plugin.cmd           Double-click installer (Windows)
+└── LICENSE                      MIT
 ```
 
 **[User Guide](docs/USER_GUIDE.md)**: step-by-step setup and usage for any project.
@@ -176,3 +177,7 @@ The constants (action, receiver class, `payload_b64` extra and result codes) are
 - `scripts/localpush.sh`
 
 If you change the JSON format, bump `v`.
+
+## License
+
+[MIT](LICENSE)
