@@ -5,6 +5,8 @@ import com.intellij.execution.process.ConsoleHighlighter
 import com.intellij.execution.ui.ConsoleView
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.progress.ProgressIndicator
@@ -18,7 +20,9 @@ import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.Align
 import com.intellij.ui.dsl.builder.AlignX
+import com.intellij.ui.dsl.builder.Row
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.io.HttpRequests
 import com.intellij.util.ui.JBUI
 import com.localpush.plugin.adb.AdbClient
 import com.localpush.plugin.adb.AdbDevice
@@ -29,6 +33,7 @@ import com.localpush.plugin.model.LogMessage
 import com.localpush.plugin.model.PushImportance
 import com.localpush.plugin.model.PushRequest
 import com.localpush.plugin.settings.LocalPushSettings
+import java.io.IOException
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.swing.DefaultComboBoxModel
@@ -53,12 +58,14 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
     private val console: ConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project)
         .apply { setViewer(true) }
         .console
+    private lateinit var kofiRow: Row
 
     init {
         Disposer.register(this, console)
         loadState()
         setContent(JBScrollPane(buildForm()))
         refreshDevices()
+        showKofiIfReachable()
     }
 
     private fun buildForm() = panel {
@@ -107,6 +114,7 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
                     .applyToComponent { preferredSize = JBUI.size(400, 220) }
             }.resizableRow()
         }
+        kofiRow = row { browserLink("☕ Support this plugin on Ko-fi", KOFI_URL) }.visible(false)
     }
 
     // ---------------------------------------------------------------- actions
@@ -228,6 +236,25 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
     private fun warn(text: String) = log(LogMessage(LogLevel.WARNING, text))
     private fun error(text: String) = log(LogMessage(LogLevel.ERROR, text))
 
+    /** Shows the Ko-fi link only if ko-fi.com loads (through the IDE proxy), so a firewall never leaves a dead link. */
+    private fun showKofiIfReachable() {
+        kofiReachable?.let { kofiRow.visible(it); return }
+        ApplicationManager.getApplication().executeOnPooledThread {
+            val ok = try {
+                HttpRequests.request(KOFI_PROBE_URL)
+                    .connectTimeout(PROBE_TIMEOUT_MS)
+                    .readTimeout(PROBE_TIMEOUT_MS)
+                    .tryConnect() in 200..399
+            } catch (e: IOException) {
+                false
+            }
+            kofiReachable = ok
+            ApplicationManager.getApplication().invokeLater({
+                if (!Disposer.isDisposed(this)) kofiRow.visible(ok)
+            }, ModalityState.any())
+        }
+    }
+
     override fun dispose() = Unit // the console is disposed as a child (Disposer.register in init)
 
     private fun loadState() {
@@ -265,6 +292,14 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
     }
 
     private companion object {
+        const val KOFI_URL = "https://ko-fi.com/N8W327KI3Y"
+        const val KOFI_PROBE_URL = "https://ko-fi.com/favicon.png"
+        const val PROBE_TIMEOUT_MS = 8_000
+
+        /** Probed once per IDE session, not every time a project opens the tool window. */
+        @Volatile
+        var kofiReachable: Boolean? = null
+
         /** Green from the IDE's ANSI console palette, so it adapts to light and dark themes. */
         val SUCCESS_OUTPUT = ConsoleViewContentType(
             "LOCALPUSH_SUCCESS",

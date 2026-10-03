@@ -181,3 +181,7 @@ If you change the JSON format, bump `v`.
 ## License
 
 [MIT](LICENSE)
+
+## Support
+
+If this plugin saves you time, you can [buy me a coffee on Ko-fi](https://ko-fi.com/N8W327KI3Y) ☕
