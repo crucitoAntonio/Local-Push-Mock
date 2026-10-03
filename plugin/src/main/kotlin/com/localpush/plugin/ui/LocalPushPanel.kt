@@ -13,8 +13,12 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.util.Disposer
+import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.ToolbarDecorator
+import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.components.JBTextArea
 import com.intellij.ui.components.JBTextField
@@ -33,10 +37,15 @@ import com.localpush.plugin.model.LogMessage
 import com.localpush.plugin.model.PushImportance
 import com.localpush.plugin.model.PushRequest
 import com.localpush.plugin.settings.LocalPushSettings
+import com.localpush.plugin.settings.LocalPushSettings.SavedPush
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import java.io.IOException
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.swing.DefaultComboBoxModel
+import javax.swing.DefaultListModel
+import javax.swing.ListSelectionModel
 
 class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true, true), Disposable {
 
@@ -58,6 +67,18 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
     private val console: ConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project)
         .apply { setViewer(true) }
         .console
+    private val savedModel = DefaultListModel<SavedPush>()
+    private val savedList = JBList(savedModel).apply {
+        selectionMode = ListSelectionModel.SINGLE_SELECTION
+        visibleRowCount = 5
+        emptyText.text = "Nothing saved yet. Click + to save the current form."
+        cellRenderer = SimpleListCellRenderer.create("") { it.name }
+        addMouseListener(object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                selectedValue?.let(::fillForm)
+            }
+        })
+    }
     private lateinit var kofiRow: Row
 
     init {
@@ -69,6 +90,17 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
     }
 
     private fun buildForm() = panel {
+        collapsibleGroup("Saved notifications") {
+            row {
+                val decorated = ToolbarDecorator.createDecorator(savedList)
+                    .setAddAction { saveCurrent() }
+                    .setRemoveAction { deleteSelected() }
+                    .disableUpDownActions()
+                    .createPanel()
+                cell(decorated).align(AlignX.FILL)
+            }
+            row { comment("Click one to fill in the form. Stored locally in this project's workspace.") }
+        }.expanded = true
         group("Target") {
             row("Device:") {
                 cell(deviceCombo).align(AlignX.FILL).resizableColumn()
@@ -170,6 +202,64 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
         }
     }
 
+    private fun saveCurrent() {
+        val suggested = titleField.text.trim().ifEmpty { bodyArea.text.trim() }.take(40)
+        val name = Messages.showInputDialog(
+            project, "Name for this notification:", "Save Notification", null, suggested, null,
+        )?.trim()?.takeIf { it.isNotEmpty() } ?: return
+        val existing = state.saved.indexOfFirst { it.name == name }
+        if (existing >= 0) {
+            val overwrite = Messages.showYesNoDialog(
+                project, "\"$name\" already exists. Replace it?", "Save Notification", null,
+            ) == Messages.YES
+            if (!overwrite) return
+            state.saved.removeAt(existing)
+        }
+        state.saved.add(0, currentAsSaved(name))
+        state.savedChanged()
+        reloadSaved()
+        savedList.selectedIndex = 0
+        info("Saved \"$name\"")
+    }
+
+    private fun deleteSelected() {
+        val selected = savedList.selectedValue ?: return
+        state.saved.remove(selected)
+        state.savedChanged()
+        reloadSaved()
+        info("Deleted \"${selected.name}\"")
+    }
+
+    private fun currentAsSaved(name: String) = SavedPush().also {
+        it.name = name
+        it.title = titleField.text
+        it.body = bodyArea.text
+        it.channelId = channelIdField.text
+        it.channelName = channelNameField.text
+        it.importance = importanceCombo.item?.name
+        it.deepLink = deepLinkField.text
+        it.smallIcon = smallIconField.text
+        it.notificationId = notificationIdField.text
+        it.dataText = dataArea.text
+    }
+
+    private fun fillForm(saved: SavedPush) {
+        titleField.text = saved.title.orEmpty()
+        bodyArea.text = saved.body.orEmpty()
+        channelIdField.text = saved.channelId.orEmpty()
+        channelNameField.text = saved.channelName.orEmpty()
+        importanceCombo.selectedItem = PushImportance.entries.firstOrNull { it.name == saved.importance } ?: PushImportance.HIGH
+        deepLinkField.text = saved.deepLink.orEmpty()
+        smallIconField.text = saved.smallIcon.orEmpty()
+        notificationIdField.text = saved.notificationId.orEmpty()
+        dataArea.text = saved.dataText.orEmpty()
+    }
+
+    private fun reloadSaved() {
+        savedModel.clear()
+        savedModel.addAll(state.saved)
+    }
+
     // ---------------------------------------------------------------- helpers
 
     private fun buildRequest(): PushRequest {
@@ -269,6 +359,7 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
         notificationIdField.text = state.notificationId.orEmpty()
         dataArea.text = state.dataText.orEmpty()
         adbPathField.text = state.adbPath.orEmpty()
+        reloadSaved()
     }
 
     private fun saveState() {

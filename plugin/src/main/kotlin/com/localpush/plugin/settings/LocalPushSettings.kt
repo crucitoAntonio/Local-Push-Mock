@@ -25,5 +25,25 @@ class LocalPushSettings : SimplePersistentStateComponent<LocalPushSettings.FormS
         var notificationId by string()
         var dataText by string("{\n  \"type\": \"order_update\",\n  \"orderId\": \"42\"\n}")
         var adbPath by string()
+        var saved by list<SavedPush>()
+
+        /** Call after editing [saved] in place, so the IDE knows the state must be written. */
+        fun savedChanged() = incrementModificationCount()
+    }
+
+    /** A notification the user chose to keep, newest first in [FormState.saved]. */
+    class SavedPush : BaseState() {
+        var name by string()
+        var title by string()
+        var body by string()
+        var channelId by string()
+        var channelName by string()
+        var importance by string()
+        var deepLink by string()
+        var smallIcon by string()
+        var notificationId by string()
+        var dataText by string()
+
+        override fun toString() = name.orEmpty()
     }
 }
