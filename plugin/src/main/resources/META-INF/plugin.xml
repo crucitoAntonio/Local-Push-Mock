@@ -41,6 +41,7 @@ Nothing ships to production, and other apps cannot trigger it.</p>
 <ul>
   <li>1.0.0 — First release.</li>
   <li>1.1.0 — Save notifications and reuse them with one click. Optional Ko-fi link.</li>
+  <li>1.1.1 — Replaces APIs that JetBrains is deprecating, for compatibility with upcoming IDE versions.</li>
 </ul>
     ]]></change-notes>
 

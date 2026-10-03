@@ -16,7 +16,7 @@ import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.ui.SimpleToolWindowPanel
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.SimpleListCellRenderer
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.ToolbarDecorator
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
@@ -45,6 +45,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import javax.swing.DefaultComboBoxModel
 import javax.swing.DefaultListModel
+import javax.swing.JList
 import javax.swing.ListSelectionModel
 
 class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true, true), Disposable {
@@ -72,7 +73,13 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
         selectionMode = ListSelectionModel.SINGLE_SELECTION
         visibleRowCount = 5
         emptyText.text = "Nothing saved yet. Click + to save the current form."
-        cellRenderer = SimpleListCellRenderer.create("") { it.name }
+        cellRenderer = object : ColoredListCellRenderer<SavedPush>() {
+            override fun customizeCellRenderer(
+                list: JList<out SavedPush>, value: SavedPush?, index: Int, selected: Boolean, hasFocus: Boolean,
+            ) {
+                append(value?.name.orEmpty())
+            }
+        }
         addMouseListener(object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 selectedValue?.let(::fillForm)
@@ -80,6 +87,7 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
         })
     }
     private lateinit var kofiRow: Row
+    private var disposed = false
 
     init {
         Disposer.register(this, console)
@@ -340,12 +348,15 @@ class LocalPushPanel(private val project: Project) : SimpleToolWindowPanel(true,
             }
             kofiReachable = ok
             ApplicationManager.getApplication().invokeLater({
-                if (!Disposer.isDisposed(this)) kofiRow.visible(ok)
+                if (!disposed) kofiRow.visible(ok)
             }, ModalityState.any())
         }
     }
 
-    override fun dispose() = Unit // the console is disposed as a child (Disposer.register in init)
+    // The console is disposed as a child (Disposer.register in init).
+    override fun dispose() {
+        disposed = true
+    }
 
     private fun loadState() {
         state.packageName?.let { packageCombo.editor.item = it; packageCombo.addItem(it) }

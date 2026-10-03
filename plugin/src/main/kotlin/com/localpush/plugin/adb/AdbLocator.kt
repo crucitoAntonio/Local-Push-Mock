@@ -1,6 +1,5 @@
 package com.localpush.plugin.adb
 
-import com.intellij.execution.configurations.PathEnvironmentVariableUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.SystemInfo
 import java.io.File
@@ -38,8 +37,14 @@ object AdbLocator {
             .filterNotNull()
             .map { adbInSdk(File(it)) }
             .firstOrNull { it.canExecute() }
-            ?: PathEnvironmentVariableUtil.findInPath(adbName)
+            ?: findInPath()
     }
+
+    private fun findInPath(): File? =
+        System.getenv("PATH").orEmpty().split(File.pathSeparator)
+            .filter { it.isNotBlank() }
+            .map { File(it, adbName) }
+            .firstOrNull { it.isFile && it.canExecute() }
 
     private fun adbInSdk(sdkDir: File) = File(File(sdkDir, "platform-tools"), adbName)
 
