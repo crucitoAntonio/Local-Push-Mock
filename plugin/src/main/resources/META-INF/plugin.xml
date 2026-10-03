@@ -40,6 +40,7 @@ Nothing ships to production, and other apps cannot trigger it.</p>
     <change-notes><![CDATA[
 <ul>
   <li>1.0.0 — First release.</li>
+  <li>1.1.0 — Save notifications and reuse them with one click. Optional Ko-fi link.</li>
 </ul>
     ]]></change-notes>
 
